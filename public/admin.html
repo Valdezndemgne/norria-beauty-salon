@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Norria Beauty Salon — Back-office</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th,td{padding:9px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top;}
+  th{color:var(--gold-soft);font-weight:700;}
+  .badge{font-size:11px;padding:2px 8px;border-radius:20px;}
+  .b-confirmee{background:#254a34;color:#8fe0ad;}
+  .b-en_attente_acompte{background:#4a3a25;color:#e6c98f;}
+  .b-annulee{background:#4a2525;color:#e69090;}
+  .mini{padding:6px 10px;font-size:13px;width:auto;}
+  .stat{display:inline-block;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 16px;margin:4px;}
+  .stat b{display:block;font-size:20px;color:var(--gold);}
+  .tabs{display:flex;gap:8px;margin:8px 0 16px;}
+  .tab{padding:8px 16px;border-radius:10px;border:1px solid var(--line);background:#25122e;color:var(--muted);cursor:pointer;}
+  .tab.on{background:var(--gold);color:#20102a;font-weight:700;border-color:var(--gold);}
+  .thumb{width:54px;height:54px;object-fit:cover;border-radius:8px;border:1px solid var(--line);cursor:pointer;}
+  .gadmin{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;}
+  .gadmin .item{background:#25122e;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  .gadmin .item .im{height:120px;background-size:cover;background-position:center;}
+  .gadmin .item .cap{padding:6px 8px;font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:4px;}
+  .dashgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:640px){.dashgrid{grid-template-columns:1fr;}}
+  .bignum{font-size:38px;font-weight:800;color:var(--gold);margin:8px 0;}
+  .calbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .callabel{font-weight:700;color:#fff;text-transform:capitalize;flex:1;}
+  .calgrid{position:relative;display:flex;}
+  .calhours{position:relative;width:52px;flex:0 0 52px;}
+  .calhour{position:absolute;font-size:11px;color:var(--muted);transform:translateY(-6px);}
+  .calcol{position:relative;flex:1;border-left:1px solid var(--line);}
+  .calline{position:absolute;left:0;right:0;border-top:1px solid var(--line);}
+  .calevt{position:absolute;left:6px;right:6px;background:linear-gradient(135deg,#7b3f9d,#5a2a72);border:1px solid var(--gold);border-radius:8px;padding:4px 8px;font-size:12px;color:#fff;overflow:hidden;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3);}
+  .calevt span{color:var(--gold-soft);}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">NORRIA <span>Beauty Salon</span></div>
+  <div class="tag">Back-office — Angela</div>
+</header>
+<div class="wrap">
+  <section class="card" id="login">
+    <h2 class="section">Connexion</h2>
+    <label for="pass">Mot de passe</label>
+    <input id="pass" type="password" placeholder="••••••">
+    <p class="err hidden" id="lerr">Mot de passe incorrect.</p>
+    <div class="actions"><button class="btn" onclick="login()">Entrer</button></div>
+  </section>
+
+  <div id="dash" class="hidden">
+    <div class="tabs">
+      <button class="tab on" data-t="dash" onclick="tab('dash')">Tableau de bord</button>
+      <button class="tab" data-t="cal" onclick="tab('cal')">Calendrier</button>
+      <button class="tab" data-t="resa" onclick="tab('resa')">Réservations</button>
+      <button class="tab" data-t="clients" onclick="tab('clients')">Clients</button>
+      <button class="tab" data-t="catalogue" onclick="tab('catalogue')">Catalogue</button>
+    </div>
+
+    <!-- TABLEAU DE BORD -->
+    <div id="v-dash">
+      <div class="card center" id="stats"></div>
+      <div class="dashgrid">
+        <section class="card">
+          <h2 class="section">Rendez-vous à venir</h2>
+          <div id="upcoming"></div>
+        </section>
+        <section class="card">
+          <h2 class="section">Historique des rendez-vous</h2>
+          <div id="history"></div>
+        </section>
+        <section class="card">
+          <h2 class="section">Prestations les plus populaires</h2>
+          <table id="popular"><thead><tr><th>Prestation</th><th>RDV</th></tr></thead><tbody></tbody></table>
+        </section>
+        <section class="card">
+          <h2 class="section">Chiffre d'affaires estimé</h2>
+          <div id="revenue" class="center"></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- CALENDRIER JOUR -->
+    <div id="v-cal" class="hidden">
+      <section class="card">
+        <div class="calbar">
+          <button class="navbtn" onclick="calShift(-1)">‹</button>
+          <button class="btn ghost mini" onclick="calToday()">Aujourd'hui</button>
+          <span id="calLabel" class="callabel"></span>
+          <button class="navbtn" onclick="calShift(1)">›</button>
+        </div>
+        <div class="calgrid" id="calGrid"></div>
+      </section>
+    </div>
+
+    <div id="v-resa" class="hidden">
+      <section class="card">
+        <h2 class="section">Réservations</h2>
+        <div style="overflow-x:auto"><table id="tbl"><thead>
+          <tr><th>Date</th><th>Heure</th><th>Prestation</th><th>Cliente</th><th>Tél</th><th>Photo</th><th>Statut</th><th></th></tr>
+        </thead><tbody></tbody></table></div>
+      </section>
+    </div>
+
+    <div id="v-clients" class="hidden">
+      <section class="card">
+        <h2 class="section">Fichier clients</h2>
+        <div style="overflow-x:auto"><table id="ctbl"><thead>
+          <tr><th>#</th><th>Nom</th><th>Téléphone</th><th>E-mail</th><th>Inscrit le</th></tr>
+        </thead><tbody></tbody></table></div>
+      </section>
+    </div>
+
+    <div id="v-catalogue" class="hidden">
+      <section class="card">
+        <h2 class="section">Catalogue de coiffures</h2>
+        <p class="muted" style="margin-top:-6px">Ajoutez vos propres réalisations : collez l'URL d'une photo (ou hébergez-la), donnez un titre et une catégorie.</p>
+        <div class="row">
+          <input id="c_titre" placeholder="Titre (ex. Knotless bordeaux)" style="flex:1 1 140px">
+          <input id="c_cat" placeholder="Catégorie" style="flex:1 1 120px">
+        </div>
+        <input id="c_url" placeholder="URL de l'image (https://…)" style="margin-top:8px">
+        <div class="actions"><button class="btn" onclick="addCat()">Ajouter au catalogue</button></div>
+        <div class="gadmin" id="gadmin" style="margin-top:16px"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITION RDV -->
+<div class="modal hidden" id="editModal">
+  <div class="modalbox">
+    <button class="close" onclick="document.getElementById('editModal').classList.add('hidden')">✕</button>
+    <h2 class="section">Déplacer / modifier le rendez-vous</h2>
+    <div id="editRecap" class="muted" style="margin-bottom:8px"></div>
+    <label>Nouvelle date</label><input id="e_date" type="date">
+    <label>Nouvelle heure de début</label><input id="e_debut" type="time" step="1800">
+    <label>Statut</label>
+    <select id="e_statut">
+      <option value="confirmee">confirmée</option>
+      <option value="en_attente_acompte">en attente acompte</option>
+      <option value="annulee">annulée</option>
+    </select>
+    <label>Note</label><textarea id="e_note" rows="2"></textarea>
+    <p class="err hidden" id="e_err"></p>
+    <div class="actions"><button class="btn" onclick="saveEdit()">Enregistrer</button></div>
+  </div>
+</div>
+
+<script src="/admin.js"></script>
+</body>
+</html>

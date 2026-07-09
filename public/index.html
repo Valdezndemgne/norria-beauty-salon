@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Norria Beauty Salon — Réserver en ligne</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="accountbar">
+  <div class="wrap abrow">
+    <span id="hello" class="muted">Bienvenue chez Norria</span>
+    <span id="authBtns">
+      <button class="link" onclick="openAuth('login')">Se connecter</button>
+      <button class="link" onclick="openAuth('register')">Créer un compte</button>
+    </span>
+    <span id="userBtns" class="hidden">
+      <button class="link" onclick="showDashboard()">Mon espace</button>
+      <button class="link" onclick="showBooking()">Réserver</button>
+      <button class="link" onclick="logout()">Déconnexion</button>
+    </span>
+  </div>
+</div>
+
+<header class="hero" style="background-image:url('https://images.pexels.com/photos/8973502/pexels-photo-8973502.jpeg?auto=compress&cs=tinysrgb&w=1400')">
+  <div class="hero-inner">
+    <div class="brand">NORRIA <span>Beauty Salon</span></div>
+    <div class="sub">Votre beauté, notre passion</div>
+    <div class="tag">Antony · sur rendez-vous</div>
+    <a class="btn hero-cta" href="#catalogSection">Réserver ma coiffure ✨</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- ESPACE CLIENT (tableau de bord) -->
+  <section id="clientDash" class="hidden"></section>
+
+  <!-- CATALOGUE / INSPIRATIONS -->
+  <section class="card" id="catalogSection">
+    <h2 class="section">✨ Inspirations coiffures</h2>
+    <p class="muted" style="margin-top:-6px">Parcourez les modèles. Cliquez sur « Choisir ce style » pour réserver avec ce modèle en tête.</p>
+    <div class="chips" id="catFilters"></div>
+    <div class="gallery" id="gallery"></div>
+    <div class="notfound">
+      <b>Vous ne trouvez pas votre modèle&nbsp;?</b>
+      <p class="muted">Réservez quand même : vous pourrez <b>joindre une photo</b> du modèle souhaité, ou en discuter directement avec Valdez sur WhatsApp.</p>
+      <a class="btn ghost" id="waTop" target="_blank" rel="noopener">💬 Discuter sur WhatsApp</a>
+    </div>
+  </section>
+
+  <div class="steps" id="stepDots">
+    <div class="dot on" id="d1"></div><div class="dot" id="d2"></div><div class="dot" id="d3"></div>
+  </div>
+
+  <!-- ETAPE 1 : prestation -->
+  <section class="card" id="step1">
+    <h2 class="section">1. Choisissez votre prestation</h2>
+    <div id="chosenStyle" class="chosen hidden"></div>
+    <div id="services"><p class="muted">Chargement…</p></div>
+  </section>
+
+  <!-- ETAPE 2 : date + creneau -->
+  <section class="card hidden" id="step2">
+    <h2 class="section">2. Choisissez la date et l'heure</h2>
+    <div class="daynav">
+      <button class="navbtn" onclick="shiftDay(-1)">‹</button>
+      <input type="date" id="date">
+      <button class="navbtn" onclick="shiftDay(1)">›</button>
+    </div>
+    <div id="slotsWrap" class="hidden">
+      <div class="daylabel" id="dayLabel"></div>
+      <div class="agenda" id="agenda"></div>
+      <p class="muted" id="noSlot" style="display:none;margin-top:10px">Fermé ou complet ce jour-là. Essayez une autre date.</p>
+      <p class="legend"><span class="lg lg-free"></span> libre &nbsp; <span class="lg lg-busy"></span> occupé / trop tard</p>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" onclick="goStep(1)">Retour</button>
+      <button class="btn" id="toStep3" disabled onclick="goStep(3)">Continuer</button>
+    </div>
+  </section>
+
+  <!-- ETAPE 3 : coordonnees + recap -->
+  <section class="card hidden" id="step3">
+    <h2 class="section">3. Vos coordonnées</h2>
+    <div class="summary" id="recap"></div>
+
+    <label for="nom">Nom complet *</label>
+    <input id="nom" placeholder="Ex. Awa Diallo">
+    <label for="tel">Téléphone *</label>
+    <input id="tel" placeholder="Ex. 06 12 34 56 78">
+    <label for="email">E-mail (pour la confirmation)</label>
+    <input id="email" type="email" placeholder="vous@exemple.com">
+    <label for="note">Message (longueur, modèle souhaité…)</label>
+    <textarea id="note" rows="2" placeholder="Facultatif"></textarea>
+
+    <label>Photo du modèle souhaité (facultatif)</label>
+    <input id="photo" type="file" accept="image/*" onchange="previewPhoto()">
+    <img id="photoPreview" class="preview hidden" alt="aperçu">
+
+    <div id="createAccountBox" class="acctbox">
+      <label class="checkline"><input type="checkbox" id="creerCompte" onchange="toggleAcct()"> Créer un compte pour retrouver mes RDV</label>
+      <div id="pwdWrap" class="hidden">
+        <label for="password">Mot de passe</label>
+        <input id="password" type="password" placeholder="Choisissez un mot de passe">
+      </div>
+    </div>
+
+    <div class="notice" id="depositNotice"></div>
+    <p class="err hidden" id="err"></p>
+    <div class="actions">
+      <button class="btn ghost" onclick="goStep(2)">Retour</button>
+      <button class="btn" id="confirmBtn" onclick="submitBooking()">Confirmer la réservation</button>
+    </div>
+    <a class="wa-alt" id="waStep" target="_blank" rel="noopener">Ou discuter d'abord avec Valdez sur WhatsApp 💬</a>
+  </section>
+
+  <p class="foot">
+    Norria Beauty Salon · Antony · 07 52 95 57 92 · Instagram @Angy_kke<br>
+    Résultat soigné, style assuré ✨
+  </p>
+</div>
+
+<!-- MODAL AUTH -->
+<div class="modal hidden" id="authModal">
+  <div class="modalbox">
+    <button class="close" onclick="closeAuth()">✕</button>
+    <h2 class="section" id="authTitle">Connexion</h2>
+    <div id="regFields" class="hidden">
+      <label>Nom complet</label><input id="a_nom" placeholder="Votre nom">
+      <label>Téléphone</label><input id="a_tel" placeholder="06 …">
+    </div>
+    <label>E-mail</label><input id="a_email" type="email" placeholder="vous@exemple.com">
+    <label>Mot de passe</label><input id="a_pass" type="password" placeholder="••••••">
+    <p class="err hidden" id="a_err"></p>
+    <div class="actions"><button class="btn" id="authSubmit" onclick="submitAuth()">Valider</button></div>
+    <p class="muted center" id="authSwitch"></p>
+  </div>
+</div>
+
+<!-- MODAL MES RDV -->
+<div class="modal hidden" id="mineModal">
+  <div class="modalbox">
+    <button class="close" onclick="document.getElementById('mineModal').classList.add('hidden')">✕</button>
+    <h2 class="section">Mes rendez-vous</h2>
+    <div id="mineList"></div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
