@@ -1,0 +1,17 @@
+{
+  "name": "norria-coiffure",
+  "version": "1.0.0",
+  "description": "Application de reservation en ligne pour Norria Beauty Salon (Norria Coiffure)",
+  "main": "server.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "nodemailer": "^6.9.14"
+  }
+}

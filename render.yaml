@@ -1,0 +1,45 @@
+# Blueprint Render — configure automatiquement l'hebergement de Norria Beauty Salon.
+# Sur render.com : New + -> Blueprint -> connecter le depot -> Render lit ce fichier.
+services:
+  - type: web
+    name: norria-beauty-salon
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      # Donnees + photos stockees sur le disque persistant (voir plus bas)
+      - key: DATA_FILE
+        value: /var/data/data.json
+      - key: UPLOAD_DIR
+        value: /var/data/uploads
+      - key: ADMIN_PASSWORD
+        sync: false            # a definir dans Render (mot de passe du back-office)
+      - key: OWNER_EMAIL
+        sync: false
+      - key: OWNER_WHATSAPP
+        sync: false
+      # Optionnels (laisser vide au debut) :
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: CALLMEBOT_PHONE
+        sync: false
+      - key: CALLMEBOT_APIKEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: PUBLIC_URL
+        sync: false            # l'URL Render une fois connue, ex https://norria-beauty-salon.onrender.com
+    # Disque persistant pour garder reservations + photos entre les redemarrages :
+    disk:
+      name: data
+      mountPath: /var/data
+      sizeGB: 1
