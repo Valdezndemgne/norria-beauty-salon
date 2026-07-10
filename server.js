@@ -251,7 +251,9 @@ app.post('/api/reservations', async (req, res) => {
     `${note ? '\nNote : ' + note : ''}${photoPath ? '\nPhoto de reference fournie (voir back-office)' : ''}`;
   const msgClient =
     `Bonjour ${nom}, votre reservation chez Norria Beauty Salon est enregistree.\n` +
-    `${service.nom} — ${date} a ${debut}.\nUn acompte de ${service.acompte} € confirme le rendez-vous.\nA tres vite ! — Angela`;
+    `${service.nom} — ${date} a ${debut}.\n` +
+    `Pour confirmer, reglez l'acompte de ${service.acompte} € par Wero au 07 52 95 57 92, ` +
+    `puis envoyez la preuve sur WhatsApp.\nA tres vite ! — Angela`;
 
   await sendEmail(OWNER_EMAIL, 'Nouvelle reservation Norria', msgOwner);
   await sendEmail(email, 'Votre reservation Norria Beauty Salon', msgClient);

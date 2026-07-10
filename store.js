@@ -23,6 +23,8 @@ function seedServices() {
     { id: 9,  nom: 'Knotless braids',              categorie: 'femme', duree_min: 300, prix: 50,   acompte: 10, actif: 1, ordre: 9 },
     { id: 10, nom: 'Dreadlocks',                   categorie: 'femme', duree_min: 180, prix: null, acompte: 10, actif: 1, ordre: 10 },
     { id: 11, nom: 'Tresses longues',              categorie: 'femme', duree_min: 360, prix: 60,   acompte: 10, actif: 1, ordre: 11 },
+    { id: 12, nom: 'Tresses enfant',               categorie: 'enfant', duree_min: 120, prix: null, acompte: 5, actif: 1, ordre: 12 },
+    { id: 13, nom: 'Coupe enfant',                 categorie: 'enfant', duree_min: 40,  prix: 35,   acompte: 5, actif: 1, ordre: 13 },
   ];
 }
 function seedDispos() {
@@ -32,34 +34,39 @@ function seedDispos() {
     { jour, debut: '00:00', fin: '24:00', effectif_du: null, effectif_au: null }
   ));
 }
-// Catalogue : photos libres de droits (Pexels, usage commercial autorise, sans attribution).
-// Valdez pourra ajouter/remplacer par ses propres realisations depuis l'admin.
+// Catalogue : vraies photos de Norria, classees en 3 categories cliquables.
 function seedCatalogue() {
-  const P = (id, f) => `https://images.pexels.com/photos/${id}/${f || 'pexels-photo-' + id + '.jpeg'}?auto=compress&cs=tinysrgb&w=600`;
-  return [
-    { id: 1,  titre: 'Box braids classiques',     categorie: 'Box braids',        image_url: P(10810251), actif: 1 },
-    { id: 2,  titre: 'Box braids longues',         categorie: 'Tresses longues',   image_url: P(13767165), actif: 1 },
-    { id: 3,  titre: 'Box braids stylées',         categorie: 'Box braids',        image_url: P(11515382), actif: 1 },
-    { id: 4,  titre: 'Knotless braids',            categorie: 'Knotless',          image_url: P(8973502),  actif: 1 },
-    { id: 5,  titre: 'Twists / Vanilles',          categorie: 'Vanilles / Twists', image_url: P(7190007),  actif: 1 },
-    { id: 6,  titre: 'Coiffure protectrice',       categorie: 'Protectrice',       image_url: P(6691645),  actif: 1 },
-    { id: 7,  titre: 'Coiffure homme',             categorie: 'Homme',             image_url: P(16778662, 'free-photo-of-man-with-braided-hair.jpeg'), actif: 1 },
-    { id: 8,  titre: 'Cornrows / Tresses collées', categorie: 'Cornrows',          image_url: P(11269006), actif: 1 },
-    { id: 9,  titre: 'Cornrows stylisées',         categorie: 'Cornrows',          image_url: P(33664383, 'free-photo-of-top-view-of-stylish-braided-hairstyle-on-woman.jpeg'), actif: 1 },
-    { id: 10, titre: 'Tresses au naturel',         categorie: 'Vanilles / Twists', image_url: P(15576674, 'free-photo-of-a-young-woman-having-her-hair-braided.jpeg'), actif: 1 },
-    { id: 11, titre: 'Portrait tresses soleil',    categorie: 'Box braids',        image_url: P(32228162, 'free-photo-of-portrait-of-a-woman-with-braided-hairstyle-in-sunlight.jpeg'), actif: 1 },
-    { id: 12, titre: 'Coiffure élégante',          categorie: 'Protectrice',       image_url: P(4800598),  actif: 1 },
-    { id: 13, titre: 'Cornrows homme (Norria)',    categorie: 'Cornrows',          image_url: '/realisations/real-photo-1.jpg', actif: 1 },
-    { id: 14, titre: 'Box braids boho (Norria)',   categorie: 'Tresses longues',   image_url: '/realisations/real-photo-2.jpg', actif: 1 },
-  ];
+  const items = [];
+  let id = 0;
+  const add = (cat, files) => files.forEach((f, i) => items.push(
+    { id: ++id, titre: `${cat} ${i + 1}`, categorie: cat, image_url: f, actif: 1 }
+  ));
+  add('Tresses femmes', [
+    '/realisations/real-photo-2.jpg',
+    '/catalogue/img-01.jpg', '/catalogue/img-02.jpg', '/catalogue/img-03.jpg',
+    '/catalogue/img-08.jpg', '/catalogue/img-13.jpg', '/catalogue/img-14.jpg',
+  ]);
+  add('Tresses hommes', [
+    '/realisations/real-photo-1.jpg',
+    '/catalogue/img-04.jpg', '/catalogue/img-05.jpg', '/catalogue/img-06.jpg',
+    '/catalogue/img-07.jpg', '/catalogue/img-09.jpg', '/catalogue/img-10.jpg',
+    '/catalogue/img-11.jpg', '/catalogue/img-12.jpg',
+  ]);
+  add('Tresses enfant', [
+    '/catalogue/enfant-1.jpg', '/catalogue/enfant-2.jpg', '/catalogue/enfant-3.jpg',
+    '/catalogue/enfant-4.jpg', '/catalogue/enfant-5.jpg', '/catalogue/enfant-6.jpg',
+  ]);
+  return items;
 }
 
 // Realisations : vraies photos/videos du travail de Valdez.
 function seedRealisations() {
   return [
     { id: 1, type: 'video', src: '/realisations/real-video-1.mp4', titre: 'Tresses réalisées par Norria', actif: 1 },
-    { id: 2, type: 'image', src: '/realisations/real-photo-1.jpg', titre: 'Cornrows homme', actif: 1 },
+    { id: 2, type: 'image', src: '/realisations/real-photo-1.jpg', titre: 'Tresses collées homme', actif: 1 },
     { id: 3, type: 'image', src: '/realisations/real-photo-2.jpg', titre: 'Box braids longues (boho)', actif: 1 },
+    { id: 4, type: 'video', src: '/realisations/real-video-2.mp4', titre: 'Réalisation Norria', actif: 1 },
+    { id: 5, type: 'video', src: '/realisations/real-video-3.mp4', titre: 'Réalisation Norria', actif: 1 },
   ];
 }
 
@@ -72,7 +79,7 @@ function seed() {
     reservations: [],
     clients: [],
     secret: crypto.randomBytes(24).toString('hex'),
-    seq: 0, seqClient: 0, seqCat: 14, seqReal: 3,
+    seq: 0, seqClient: 0, seqCat: 22, seqReal: 5,
   };
 }
 
