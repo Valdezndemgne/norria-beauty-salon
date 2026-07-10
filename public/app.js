@@ -8,6 +8,9 @@ let me = JSON.parse(localStorage.getItem('norria_me') || 'null');
 const fmtDuree = (min) => { const h = Math.floor(min / 60), m = min % 60; return h ? `${h}h${m ? String(m).padStart(2, '0') : ''}` : `${m} min`; };
 const fmtPrix = (s) => (s.prix != null ? `${s.prix} €` : 'sur devis');
 const waHref = (txt) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(txt || 'Bonjour Valdez, je souhaite des infos pour une coiffure chez Norria 💕')}`;
+// Helpers robustes : n'echouent jamais si un element est absent
+const _hide = (id) => { const e = document.getElementById(id); if (e) e.classList.add('hidden'); };
+const _show = (id) => { const e = document.getElementById(id); if (e) e.classList.remove('hidden'); };
 
 // ---------- init ----------
 function refreshAuthUI() {
@@ -149,7 +152,8 @@ function goStep(n) {
       `<b>${s.nom}</b> — ${fmtPrix(s)}<br>📅 ${formatDate(state.date)} à <b>${state.slot}</b><br>` +
       `⏱️ Durée estimée ${fmtDuree(s.duree_min)}` + (state.style ? `<br>💇🏽‍♀️ Modèle : <b>${state.style}</b>` : '');
     document.getElementById('depositNotice').innerHTML =
-      `Un <b>acompte de ${s.acompte} €</b> confirme le rendez-vous (déduit du prix total). Le solde se règle sur place.`;
+      `Pour confirmer, réglez un <b>acompte de ${s.acompte} €</b> par <b>Wero</b> au <b>07 52 95 57 92</b> ` +
+      `(paiement instantané, sans frais). L'acompte est déduit du prix total ; le solde se règle sur place.`;
     if (state.style && !document.getElementById('note').value) document.getElementById('note').value = `Modèle souhaité : ${state.style}`;
   }
   [1, 2, 3].forEach((i) => {
@@ -199,9 +203,10 @@ async function submitBooking() {
         <h2 class="section">Merci ${nom} ! 💛</h2>
         <p>Votre réservation est enregistrée :</p>
         <p class="summary"><b>${state.service.nom}</b><br>${formatDate(state.date)} à <b>${state.slot}</b></p>
-        <div class="notice">Un acompte de <b>${data.acompte} €</b> confirmera le rendez-vous. Angela vous recontacte.</div>
-        <a class="btn ghost" style="margin-top:14px" href="${waHref('Bonjour Valdez, je viens de réserver ' + state.service.nom + ' le ' + state.date + ' à ' + state.slot)}" target="_blank">💬 Prévenir Valdez sur WhatsApp</a>
-        <p class="muted" style="margin-top:14px">Norria Beauty Salon · 07 52 95 57 92</p>
+        <div class="notice">Dernière étape : réglez l'<b>acompte de ${data.acompte} €</b> par <b>Wero</b> au
+          <b>07 52 95 57 92</b> pour confirmer le rendez-vous. Puis envoyez la preuve à Valdez sur WhatsApp 👇</div>
+        <a class="btn" style="margin-top:14px" href="${waHref("Bonjour Valdez, je viens de réserver " + state.service.nom + " le " + state.date + " à " + state.slot + ". J'envoie l'acompte par Wero.")}" target="_blank">💬 Envoyer la preuve sur WhatsApp</a>
+        <p class="muted" style="margin-top:14px">Norria Beauty Salon · Antony · 07 52 95 57 92</p>
       </div>`;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (e) {
@@ -243,10 +248,8 @@ async function submitAuth() {
 function logout() { token = null; me = null; localStorage.removeItem('norria_token'); localStorage.removeItem('norria_me'); refreshAuthUI(); }
 
 function showBooking() {
-  ['clientDash', 'realisations'].forEach((id) => document.getElementById(id).classList.add('hidden'));
-  document.getElementById('catalogSection').classList.remove('hidden');
-  document.getElementById('stepDots').classList.remove('hidden');
-  document.getElementById('step1').classList.remove('hidden');
+  ['clientDash', 'realisations', 'step2', 'step3'].forEach(_hide);
+  _show('catalogSection'); _show('stepDots'); _show('step1');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -274,8 +277,8 @@ async function showRealisations() {
       <p class="muted" style="margin-top:-4px">Le vrai travail de Valdez — tresses, box braids, cornrows et plus.</p>
       <div class="rgallery">${media || '<p class="muted">Bientôt des photos et vidéos ici.</p>'}</div>
     </div>`;
-  document.getElementById('realisations').classList.remove('hidden');
-  ['catalogSection', 'stepDots', 'step1', 'step2', 'step3', 'clientDash'].forEach((id) => document.getElementById(id).classList.add('hidden'));
+  _show('realisations');
+  ['catalogSection', 'stepDots', 'step1', 'step2', 'step3', 'clientDash'].forEach(_hide);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -320,8 +323,8 @@ async function showDashboard() {
       ${past.length ? past.map(line).join('') : '<p class="muted">Pas encore d\'historique.</p>'}
     </div>`;
 
-  document.getElementById('clientDash').classList.remove('hidden');
-  ['catalogSection', 'stepDots', 'step1', 'step2', 'step3', 'realisations'].forEach((id) => document.getElementById(id).classList.add('hidden'));
+  _show('clientDash');
+  ['catalogSection', 'stepDots', 'step1', 'step2', 'step3', 'realisations'].forEach(_hide);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 

@@ -10,6 +10,10 @@
 <div class="accountbar">
   <div class="wrap abrow">
     <span id="hello" class="muted">Bienvenue chez Norria</span>
+    <span class="navlinks">
+      <button class="link" onclick="showRealisations()">✨ Réalisations</button>
+      <button class="link" onclick="showBooking()">Réserver</button>
+    </span>
     <span id="authBtns">
       <button class="link" onclick="openAuth('login')">Se connecter</button>
       <button class="link" onclick="openAuth('register')">Créer un compte</button>
@@ -27,11 +31,14 @@
     <div class="brand">NORRIA <span>Beauty Salon</span></div>
     <div class="sub">Votre beauté, notre passion</div>
     <div class="tag">Antony · sur rendez-vous</div>
-    <a class="btn hero-cta" href="#catalogSection">Réserver ma coiffure ✨</a>
+    <a class="btn hero-cta" href="#step1" onclick="showBooking()">Réserver ma coiffure ✨</a>
   </div>
 </header>
 
 <div class="wrap">
+  <!-- REALISATIONS (portfolio photos + videos) -->
+  <section id="realisations" class="hidden"></section>
+
   <!-- ESPACE CLIENT (tableau de bord) -->
   <section id="clientDash" class="hidden"></section>
 
