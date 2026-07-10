@@ -26,17 +26,11 @@ function seedServices() {
   ];
 }
 function seedDispos() {
-  return [
-    { jour: 1, debut: '09:00', fin: '19:00', effectif_du: null,   effectif_au: SWITCH },
-    { jour: 2, debut: '09:00', fin: '19:00', effectif_du: null,   effectif_au: SWITCH },
-    { jour: 3, debut: '09:00', fin: '19:00', effectif_du: null,   effectif_au: SWITCH },
-    { jour: 4, debut: '09:00', fin: '19:00', effectif_du: null,   effectif_au: SWITCH },
-    { jour: 5, debut: '09:00', fin: '19:00', effectif_du: null,   effectif_au: SWITCH },
-    { jour: 6, debut: '09:00', fin: '19:00', effectif_du: null,   effectif_au: SWITCH },
-    { jour: 3, debut: '17:00', fin: '21:00', effectif_du: SWITCH, effectif_au: null },
-    { jour: 6, debut: '09:00', fin: '19:00', effectif_du: SWITCH, effectif_au: null },
-    { jour: 0, debut: '10:00', fin: '18:00', effectif_du: SWITCH, effectif_au: null },
-  ];
+  // VACANCES : Valdez tresse 24h/24 et 7j/7. Tous les jours, ouverts en continu.
+  // (A partir de septembre, on remplacera par des horaires reduits.)
+  return [0, 1, 2, 3, 4, 5, 6].map((jour) => (
+    { jour, debut: '00:00', fin: '24:00', effectif_du: null, effectif_au: null }
+  ));
 }
 // Catalogue : photos libres de droits (Pexels, usage commercial autorise, sans attribution).
 // Valdez pourra ajouter/remplacer par ses propres realisations depuis l'admin.
