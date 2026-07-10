@@ -49,6 +49,17 @@ function seedCatalogue() {
     { id: 10, titre: 'Tresses au naturel',         categorie: 'Vanilles / Twists', image_url: P(15576674, 'free-photo-of-a-young-woman-having-her-hair-braided.jpeg'), actif: 1 },
     { id: 11, titre: 'Portrait tresses soleil',    categorie: 'Box braids',        image_url: P(32228162, 'free-photo-of-portrait-of-a-woman-with-braided-hairstyle-in-sunlight.jpeg'), actif: 1 },
     { id: 12, titre: 'Coiffure élégante',          categorie: 'Protectrice',       image_url: P(4800598),  actif: 1 },
+    { id: 13, titre: 'Cornrows homme (Norria)',    categorie: 'Cornrows',          image_url: '/realisations/real-photo-1.jpg', actif: 1 },
+    { id: 14, titre: 'Box braids boho (Norria)',   categorie: 'Tresses longues',   image_url: '/realisations/real-photo-2.jpg', actif: 1 },
+  ];
+}
+
+// Realisations : vraies photos/videos du travail de Valdez.
+function seedRealisations() {
+  return [
+    { id: 1, type: 'video', src: '/realisations/real-video-1.mp4', titre: 'Tresses réalisées par Norria', actif: 1 },
+    { id: 2, type: 'image', src: '/realisations/real-photo-1.jpg', titre: 'Cornrows homme', actif: 1 },
+    { id: 3, type: 'image', src: '/realisations/real-photo-2.jpg', titre: 'Box braids longues (boho)', actif: 1 },
   ];
 }
 
@@ -57,10 +68,11 @@ function seed() {
     services: seedServices(),
     disponibilites: seedDispos(),
     catalogue: seedCatalogue(),
+    realisations: seedRealisations(),
     reservations: [],
     clients: [],
     secret: crypto.randomBytes(24).toString('hex'),
-    seq: 0, seqClient: 0, seqCat: 12,
+    seq: 0, seqClient: 0, seqCat: 14, seqReal: 3,
   };
 }
 
@@ -75,6 +87,8 @@ function load() {
     if (!data.secret) { data.secret = crypto.randomBytes(24).toString('hex'); changed = true; }
     if (data.seqClient == null) { data.seqClient = data.clients.length; changed = true; }
     if (data.seqCat == null) { data.seqCat = data.catalogue.length; changed = true; }
+    if (!data.realisations) { data.realisations = seedRealisations(); data.seqReal = 1; changed = true; }
+    if (data.seqReal == null) { data.seqReal = data.realisations.length; changed = true; }
     if (changed) save();
   } else {
     data = seed();
@@ -143,4 +157,10 @@ module.exports = {
   getAllCatalogue: () => data.catalogue,
   addCatalogue(obj) { data.seqCat += 1; const c = { id: data.seqCat, actif: 1, ...obj }; data.catalogue.push(c); save(); return c; },
   removeCatalogue(id) { data.catalogue = data.catalogue.filter((c) => c.id !== Number(id)); save(); },
+
+  // ----- realisations (portfolio photos + videos) -----
+  getRealisations: () => data.realisations.filter((r) => r.actif),
+  getAllRealisations: () => data.realisations,
+  addRealisation(obj) { data.seqReal += 1; const r = { id: data.seqReal, actif: 1, ...obj }; data.realisations.push(r); save(); return r; },
+  removeRealisation(id) { data.realisations = data.realisations.filter((r) => r.id !== Number(id)); save(); },
 };

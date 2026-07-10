@@ -22,7 +22,7 @@ try {
 } catch (_) {}
 
 const app = express();
-app.use(express.json({ limit: '8mb' })); // large pour accepter les photos en base64
+app.use(express.json({ limit: '40mb' })); // large pour accepter photos + courtes videos en base64
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Dossier des photos televersees (configurable pour un disque persistant en prod)
@@ -157,9 +157,25 @@ function savePhoto(dataUrl, resaId) {
   return `/uploads/${name}`;
 }
 
+// ---------- upload media (photo ou video) pour les realisations ----------
+function saveMedia(dataUrl, id) {
+  if (!dataUrl) return null;
+  const m = dataUrl.match(/^data:(image\/(?:png|jpe?g|webp)|video\/(?:mp4|webm|quicktime));base64,(.+)$/);
+  if (!m) return null;
+  const mime = m[1];
+  const buf = Buffer.from(m[2], 'base64');
+  if (buf.length > 35 * 1024 * 1024) return null; // 35 Mo max
+  const ext = mime === 'video/quicktime' ? 'mov' : mime.split('/')[1].replace('jpeg', 'jpg');
+  const type = mime.startsWith('video') ? 'video' : 'image';
+  const name = `real-${id}-${Date.now()}.${ext}`;
+  fs.writeFileSync(path.join(UPLOAD_DIR, name), buf);
+  return { src: `/uploads/${name}`, type };
+}
+
 // ================= API publique =================
 app.get('/api/services', (req, res) => res.json(store.getServices()));
 app.get('/api/catalogue', (req, res) => res.json(store.getCatalogue()));
+app.get('/api/realisations', (req, res) => res.json(store.getRealisations()));
 
 app.get('/api/slots', (req, res) => {
   const { service_id, date } = req.query;
@@ -294,6 +310,19 @@ app.post('/api/admin/catalogue', requireAdmin, (req, res) => {
   res.json(store.addCatalogue({ titre, categorie: categorie || 'Autre', image_url }));
 });
 app.delete('/api/admin/catalogue/:id', requireAdmin, (req, res) => { store.removeCatalogue(req.params.id); res.json({ ok: true }); });
+app.get('/api/admin/realisations', requireAdmin, (req, res) => res.json(store.getAllRealisations()));
+app.post('/api/admin/realisations', requireAdmin, (req, res) => {
+  const { titre, src, media } = req.body || {};
+  let finalSrc = src, type = /\.(mp4|webm|mov)$/i.test(src || '') ? 'video' : 'image';
+  if (media) {
+    const saved = saveMedia(media, store.getAllRealisations().length + 1);
+    if (!saved) return res.status(400).json({ error: 'Média invalide (image ou vidéo, max 35 Mo).' });
+    finalSrc = saved.src; type = saved.type;
+  }
+  if (!finalSrc) return res.status(400).json({ error: 'Fournissez un fichier ou une URL.' });
+  res.json(store.addRealisation({ titre: titre || '', src: finalSrc, type }));
+});
+app.delete('/api/admin/realisations/:id', requireAdmin, (req, res) => { store.removeRealisation(req.params.id); res.json({ ok: true }); });
 app.put('/api/admin/services/:id', requireAdmin, (req, res) => {
   const { prix, duree_min, acompte, actif } = req.body || {};
   store.updateService(req.params.id, { prix, duree_min, acompte, actif: actif ? 1 : 0 });
