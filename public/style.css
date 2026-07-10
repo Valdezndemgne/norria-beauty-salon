@@ -155,7 +155,7 @@ a{color:var(--gold-soft);}
 @media (prefers-reduced-motion: reduce){.mtrack{animation:none;}}
 
 /* ================= MOBILE ================= */
-@media (max-width: 560px){
+@media (max-width: 680px){
   .wrap{padding:0 12px 46px;}
   .abrow{flex-wrap:wrap;justify-content:center;gap:6px 14px;padding:8px 12px;}
   .abrow #hello{margin-right:0;width:100%;text-align:center;}
