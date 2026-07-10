@@ -242,13 +242,40 @@ async function submitAuth() {
 }
 function logout() { token = null; me = null; localStorage.removeItem('norria_token'); localStorage.removeItem('norria_me'); refreshAuthUI(); }
 
-const BOOKING_IDS = ['catalogSection', 'stepDots', 'step1', 'step2', 'step3'];
 function showBooking() {
-  document.getElementById('clientDash').classList.add('hidden');
-  BOOKING_IDS.forEach((id) => { const el = document.getElementById(id); if (el && id !== 'step2' && id !== 'step3') el.classList.remove('hidden'); });
+  ['clientDash', 'realisations'].forEach((id) => document.getElementById(id).classList.add('hidden'));
   document.getElementById('catalogSection').classList.remove('hidden');
   document.getElementById('stepDots').classList.remove('hidden');
   document.getElementById('step1').classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function showRealisations() {
+  const items = await (await fetch('/api/realisations')).json();
+  const tile = (it) => it.type === 'video'
+    ? `<div class="mtile"><video src="${it.src}" autoplay muted loop playsinline preload="metadata"></video></div>`
+    : `<div class="mtile"><img src="${it.src}" alt="" loading="lazy"></div>`;
+  // bandeau defilant (on duplique la liste pour une boucle continue)
+  const loop = items.concat(items);
+  const ribbon = items.length
+    ? `<div class="marquee"><div class="mtrack" style="animation-duration:${Math.max(items.length * 6, 18)}s">${loop.map(tile).join('')}</div></div>`
+    : '';
+  const media = items.map((it) => it.type === 'video'
+    ? `<div class="rcard"><video src="${it.src}" controls playsinline preload="metadata"></video>${it.titre ? `<div class="rcap">${it.titre}</div>` : ''}</div>`
+    : `<div class="rcard"><img src="${it.src}" alt="${it.titre || 'réalisation'}" loading="lazy">${it.titre ? `<div class="rcap">${it.titre}</div>` : ''}</div>`
+  ).join('');
+  document.getElementById('realisations').innerHTML = `
+    ${ribbon}
+    <div class="card">
+      <div class="dashhead">
+        <h2 class="section" style="margin:0">📸 Nos réalisations</h2>
+        <button class="mini gold" onclick="showBooking()">Réserver ✨</button>
+      </div>
+      <p class="muted" style="margin-top:-4px">Le vrai travail de Valdez — tresses, box braids, cornrows et plus.</p>
+      <div class="rgallery">${media || '<p class="muted">Bientôt des photos et vidéos ici.</p>'}</div>
+    </div>`;
+  document.getElementById('realisations').classList.remove('hidden');
+  ['catalogSection', 'stepDots', 'step1', 'step2', 'step3', 'clientDash'].forEach((id) => document.getElementById(id).classList.add('hidden'));
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -294,7 +321,7 @@ async function showDashboard() {
     </div>`;
 
   document.getElementById('clientDash').classList.remove('hidden');
-  ['catalogSection', 'stepDots', 'step1', 'step2', 'step3'].forEach((id) => document.getElementById(id).classList.add('hidden'));
+  ['catalogSection', 'stepDots', 'step1', 'step2', 'step3', 'realisations'].forEach((id) => document.getElementById(id).classList.add('hidden'));
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 

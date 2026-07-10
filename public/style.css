@@ -139,3 +139,17 @@ a{color:var(--gold-soft);}
 .nextlabel{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--gold-soft);}
 .nexttitle{font-size:22px;font-weight:800;color:#fff;margin:4px 0;}
 .nextmeta{color:var(--ink);font-size:15px;}
+
+/* ---- realisations (portfolio) ---- */
+.navlinks{display:flex;gap:12px;}
+.rgallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-top:12px;}
+.rcard{background:#1f0f28;border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+.rcard img,.rcard video{width:100%;display:block;aspect-ratio:3/4;object-fit:cover;background:#000;}
+.rcap{padding:8px 10px;font-size:13px;color:var(--muted);}
+/* bandeau defilant (marquee) */
+.marquee{overflow:hidden;border-radius:14px;border:1px solid var(--line);margin:14px 0;background:#000;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);}
+.mtrack{display:flex;gap:8px;width:max-content;animation:scrollx linear infinite;}
+.mtile{flex:0 0 auto;width:150px;height:220px;border-radius:10px;overflow:hidden;background:#1a0f22;}
+.mtile img,.mtile video{width:100%;height:100%;object-fit:cover;display:block;}
+@keyframes scrollx{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion: reduce){.mtrack{animation:none;}}
