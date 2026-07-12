@@ -112,7 +112,8 @@ a{color:var(--gold-soft);}
 .mini.gold{background:linear-gradient(90deg,var(--gold),var(--gold-soft));color:#20102a;font-weight:700;white-space:nowrap;}
 .notfound{margin-top:16px;padding:14px;border:1px dashed var(--gold);border-radius:12px;background:#2a1638;}
 .notfound .btn.ghost{margin-top:8px;}
-.chosen{background:#33193f;border:1px solid var(--gold);border-radius:10px;padding:8px 12px;margin-bottom:12px;font-size:14px;}
+.chosen{background:#1c3a2a;border:1px solid var(--ok);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:14px;color:#c7f2d8;}
+.chosen b{color:#fff;}
 
 /* ---- upload / compte ---- */
 .preview{max-width:160px;border-radius:10px;margin-top:8px;border:1px solid var(--line);}

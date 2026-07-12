@@ -62,16 +62,19 @@ function renderGallery(cat) {
 }
 function chooseStyle(titre) {
   state.style = titre;
+  _hide('clientDash'); _hide('realisations'); _show('stepDots'); _show('step1');
   const box = document.getElementById('chosenStyle');
   box.classList.remove('hidden');
-  box.innerHTML = `💇🏽‍♀️ Modèle choisi : <b>${titre}</b> <button class="link" onclick="clearStyle()">retirer</button>`;
-  document.getElementById('step1').scrollIntoView({ behavior: 'smooth' });
+  box.innerHTML = `✅ Style choisi : <b>${titre}</b> — choisissez votre prestation ci-dessous. <button class="link" onclick="clearStyle()">changer</button>`;
+  const t = document.getElementById('step1'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 function clearStyle() { state.style = null; document.getElementById('chosenStyle').classList.add('hidden'); }
 
 // ---------- prestations ----------
 async function loadServices() {
   services = await (await fetch('/api/services')).json();
+  // Prix fixes en haut, "sur devis" (prix null) en bas
+  services.sort((a, b) => (a.prix == null ? 1 : 0) - (b.prix == null ? 1 : 0));
   const box = document.getElementById('services');
   box.innerHTML = '';
   services.forEach((s) => {
@@ -160,7 +163,7 @@ function goStep(n) {
     document.getElementById('step' + i).classList.toggle('hidden', i !== n);
     document.getElementById('d' + i).classList.toggle('on', i <= n);
   });
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  const t = document.getElementById('step' + n); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 const formatDate = (iso) => new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
 
@@ -250,7 +253,7 @@ function logout() { token = null; me = null; localStorage.removeItem('norria_tok
 function showBooking() {
   ['clientDash', 'realisations', 'step2', 'step3'].forEach(_hide);
   _show('catalogSection'); _show('stepDots'); _show('step1');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  const t = document.getElementById('step1'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 async function showRealisations() {
