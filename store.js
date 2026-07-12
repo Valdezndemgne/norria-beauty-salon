@@ -102,10 +102,42 @@ function load() {
     save();
   }
 }
-function save() { fs.mkdirSync(path.dirname(FILE), { recursive: true }); fs.writeFileSync(FILE, JSON.stringify(data, null, 2)); }
+// --- Persistance cloud optionnelle (Upstash Redis via REST) ---
+// Si les variables UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN sont definies,
+// les donnees sont sauvegardees dans la base cloud (conservees a vie, meme apres redemarrage).
+// Sinon, on retombe sur le fichier local (dev).
+const R_URL = process.env.UPSTASH_REDIS_REST_URL;
+const R_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const R_KEY = 'norria_data_v1';
+async function redisCmd(cmd) {
+  const res = await fetch(R_URL, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + R_TOKEN, 'Content-Type': 'application/json' },
+    body: JSON.stringify(cmd),
+  });
+  return res.json(); // { result: ... }
+}
+function save() {
+  try { fs.mkdirSync(path.dirname(FILE), { recursive: true }); fs.writeFileSync(FILE, JSON.stringify(data, null, 2)); } catch (_) {}
+  if (R_URL && R_TOKEN) {
+    redisCmd(['SET', R_KEY, JSON.stringify(data)]).catch((e) => console.error('Redis save KO:', e.message));
+  }
+}
+// Charge depuis le cloud au demarrage (a appeler avant d'ecouter)
+async function init() {
+  if (!R_URL || !R_TOKEN) return; // pas de cloud -> fichier deja charge
+  try {
+    const r = await redisCmd(['GET', R_KEY]);
+    if (r && r.result) { data = JSON.parse(r.result); console.log('Donnees chargees depuis la base cloud.'); return; }
+  } catch (e) { console.error('Redis load KO:', e.message); }
+  // Base cloud vide -> on y pousse les donnees de depart (fichier/seed deja en memoire)
+  save();
+  console.log('Base cloud initialisee avec les donnees de depart.');
+}
 load();
 
 module.exports = {
+  init,
   secret: () => data.secret,
 
   // ----- prestations -----

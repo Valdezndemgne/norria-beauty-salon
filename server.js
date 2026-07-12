@@ -242,8 +242,9 @@ app.post('/api/reservations', async (req, res) => {
   if (!client && email) client = store.findClientByEmail(email) || null;
 
   const fin = toHHMM(toMin(debut) + service.duree_min);
-  const stripeReady = !!process.env.STRIPE_SECRET_KEY;
-  const statut = stripeReady ? 'en_attente_acompte' : 'confirmee';
+  // Wero : la reservation tient le creneau mais reste "en attente" jusqu'a ce que
+  // Valdez confirme l'acompte recu depuis son espace.
+  const statut = 'en_attente_acompte';
 
   const reservation = store.createReservation({
     service_id: Number(service_id), date, debut, fin,
@@ -274,7 +275,7 @@ app.post('/api/reservations', async (req, res) => {
   res.json({
     ok: true, reservation, acompte: service.acompte, checkoutUrl,
     token: newToken, whatsappOwnerLink: waLink(msgOwner),
-    message: stripeReady ? "Redirection vers le paiement de l'acompte." : 'Reservation confirmee.',
+    message: "Réservation enregistrée, en attente de l'acompte.",
   });
 });
 
@@ -289,6 +290,7 @@ function requireAdmin(req, res, next) {
 }
 app.get('/api/admin/reservations', requireAdmin, (req, res) => res.json(store.allReservationsJoined()));
 app.post('/api/admin/reservations/:id/annuler', requireAdmin, (req, res) => { store.cancelReservation(req.params.id); res.json({ ok: true }); });
+app.post('/api/admin/reservations/:id/confirmer', requireAdmin, (req, res) => { store.markPaid(req.params.id); res.json({ ok: true }); });
 
 // Deplacer / modifier une reservation (page gestionnaire Valdez)
 app.put('/api/admin/reservations/:id', requireAdmin, (req, res) => {
@@ -343,9 +345,11 @@ app.put('/api/admin/services/:id', requireAdmin, (req, res) => {
 });
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
-app.listen(PORT, () => {
-  console.log(`Norria Coiffure en ligne sur ${PUBLIC_URL} (port ${PORT})`);
-  console.log(`Back-office : ${PUBLIC_URL}/admin  (mot de passe : ${ADMIN_PASSWORD})`);
-  if (!process.env.STRIPE_SECRET_KEY) console.log('NB: Stripe non configure -> acompte non encaisse (mode demo).');
-  if (!process.env.SMTP_HOST) console.log('NB: SMTP non configure -> emails non envoyes (mode demo).');
+store.init().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Norria Coiffure en ligne sur ${PUBLIC_URL} (port ${PORT})`);
+    console.log(`Back-office : ${PUBLIC_URL}/admin  (mot de passe : ${ADMIN_PASSWORD})`);
+    if (!process.env.UPSTASH_REDIS_REST_URL) console.log('NB: base cloud non configuree -> donnees NON persistantes (fichier local).');
+    if (!process.env.SMTP_HOST) console.log('NB: SMTP non configure -> emails non envoyes.');
+  });
 });
