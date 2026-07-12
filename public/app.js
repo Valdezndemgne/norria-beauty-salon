@@ -13,20 +13,7 @@ const _hide = (id) => { const e = document.getElementById(id); if (e) e.classLis
 const _show = (id) => { const e = document.getElementById(id); if (e) e.classList.remove('hidden'); };
 
 // ---------- init ----------
-function refreshAuthUI() {
-  const logged = !!token && !!me;
-  document.getElementById('authBtns').classList.toggle('hidden', logged);
-  document.getElementById('userBtns').classList.toggle('hidden', !logged);
-  document.getElementById('hello').textContent = logged ? `Bonjour ${me.nom.split(' ')[0]} 👋` : 'Bienvenue chez Norria';
-  if (logged) {
-    document.getElementById('nom').value = me.nom || '';
-    document.getElementById('tel').value = me.tel || '';
-    document.getElementById('email').value = me.email || '';
-    document.getElementById('createAccountBox').classList.add('hidden');
-  } else {
-    document.getElementById('createAccountBox').classList.remove('hidden');
-  }
-}
+function refreshAuthUI() { /* comptes clients retires : reservation sans compte */ }
 
 document.getElementById('waTop').href = waHref();
 document.getElementById('waStep').href = waHref();
@@ -55,18 +42,28 @@ function renderGallery(cat) {
     el.innerHTML = `
       <div class="gimg" style="background-image:url('${c.image_url}')"></div>
       <div class="gcap"><span>${c.titre}</span>
-        <button class="mini gold" onclick="chooseStyle('${c.titre.replace(/'/g, "\\'")}')">Choisir ce style</button>
+        <button class="mini gold" onclick="chooseStyle('${c.titre.replace(/'/g, "\\'")}','${c.categorie}')">Choisir ce style</button>
       </div>`;
     g.appendChild(el);
   });
 }
-function chooseStyle(titre) {
+function chooseStyle(titre, categorie) {
   state.style = titre;
-  _hide('clientDash'); _hide('realisations'); _show('stepDots'); _show('step1');
+  _hide('clientDash'); _hide('realisations'); _show('stepDots');
   const box = document.getElementById('chosenStyle');
   box.classList.remove('hidden');
-  box.innerHTML = `✅ Style choisi : <b>${titre}</b> — choisissez votre prestation ci-dessous. <button class="link" onclick="clearStyle()">changer</button>`;
-  const t = document.getElementById('step1'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  box.innerHTML = `✅ Modèle choisi : <b>${titre}</b> <button class="link" onclick="clearStyle()">retirer</button>`;
+  // Prestation par defaut selon la categorie -> on va DIRECTEMENT au choix du creneau
+  const map = { 'Tresses femmes': 'Tresses simples (box braids)', 'Tresses hommes': 'Coiffure homme', 'Tresses enfant': 'Tresses enfant' };
+  const svc = services.find((s) => s.nom === (map[categorie] || '')) || null;
+  if (svc) {
+    state.service = svc; state.slot = null;
+    const d = document.getElementById('date'); if (d) d.min = new Date().toISOString().slice(0, 10);
+    goStep(2);
+  } else {
+    _show('step1');
+    const t = document.getElementById('step1'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 function clearStyle() { state.style = null; document.getElementById('chosenStyle').classList.add('hidden'); }
 
@@ -125,17 +122,25 @@ async function loadSlots() {
   noSlot.style.display = windows.length ? 'none' : 'block';
   if (!windows.length) return;
 
+  const BUFFER = 60; // 1h de trajet
   const freeSet = new Set(slots);
   const openMin = Math.min(...windows.map((w) => _toMin(w.debut)));
   const closeMin = Math.max(...windows.map((w) => _toMin(w.fin)));
   const inWindow = (t) => windows.some((w) => t >= _toMin(w.debut) && t < _toMin(w.fin));
-  const isBusy = (t) => busy.some(([bs, be]) => t >= bs && t < be);
+  const inAppt = (t) => busy.some(([bs, be]) => t >= bs && t < be);
+  const inBuffer = (t) => busy.some(([bs, be]) => t >= be && t < be + BUFFER);
 
   for (let t = openMin; t < closeMin; t += 30) {
     const row = document.createElement('div');
     const free = freeSet.has(_toHHMM(t));
-    row.className = 'arow ' + (free ? 'free' : (inWindow(t) ? (isBusy(t) ? 'busy' : 'na') : 'closed'));
-    row.innerHTML = `<span class="atime">${_toHHMM(t)}</span><span class="abar">${free ? 'Réserver' : (isBusy(t) ? 'occupé' : '')}</span>`;
+    let cls, label;
+    if (free) { cls = 'free'; label = 'Réserver'; }
+    else if (!inWindow(t)) { cls = 'closed'; label = ''; }
+    else if (inAppt(t)) { cls = 'busy'; label = 'occupé'; }
+    else if (inBuffer(t)) { cls = 'buffer'; label = 'trajet (1h)'; }
+    else { cls = 'na'; label = 'indisponible'; }
+    row.className = 'arow ' + cls;
+    row.innerHTML = `<span class="atime">${_toHHMM(t)}</span><span class="abar">${label}</span>`;
     if (free) row.onclick = () => {
       state.slot = _toHHMM(t);
       document.querySelectorAll('.arow').forEach((x) => x.classList.remove('sel'));
@@ -158,6 +163,14 @@ function goStep(n) {
       `Pour confirmer, réglez un <b>acompte de ${s.acompte} €</b> par <b>Wero</b> au <b>07 52 95 57 92</b> ` +
       `(paiement instantané, sans frais). L'acompte est déduit du prix total ; le solde se règle sur place.`;
     if (state.style && !document.getElementById('note').value) document.getElementById('note').value = `Modèle souhaité : ${state.style}`;
+  }
+  if (n === 2 && state.service) {
+    const si = document.getElementById('step2info');
+    if (si) {
+      si.classList.remove('hidden');
+      si.innerHTML = `Prestation : <b>${state.service.nom}</b>${state.style ? ` · Modèle : <b>${state.style}</b>` : ''} ` +
+        `<button class="link" onclick="showBooking()">changer de prestation</button>`;
+    }
   }
   [1, 2, 3].forEach((i) => {
     document.getElementById('step' + i).classList.toggle('hidden', i !== n);
@@ -223,22 +236,30 @@ let authMode = 'login';
 function openAuth(mode) {
   authMode = mode;
   document.getElementById('authModal').classList.remove('hidden');
-  document.getElementById('regFields').classList.toggle('hidden', mode !== 'register');
-  document.getElementById('authTitle').textContent = mode === 'register' ? 'Créer un compte' : 'Connexion';
+  _toggle('f_nom', mode === 'register');
+  _toggle('f_tel', mode === 'register' || mode === 'reset');
+  document.getElementById('authTitle').textContent =
+    mode === 'register' ? 'Créer un compte' : (mode === 'reset' ? 'Mot de passe oublié' : 'Connexion');
+  document.getElementById('a_pass_label').textContent = mode === 'reset' ? 'Nouveau mot de passe' : 'Mot de passe';
+  document.getElementById('authSubmit').textContent = mode === 'reset' ? 'Réinitialiser' : 'Valider';
   document.getElementById('a_err').classList.add('hidden');
-  document.getElementById('authSwitch').innerHTML = mode === 'register'
-    ? 'Déjà un compte ? <button class="link" onclick="openAuth(\'login\')">Se connecter</button>'
-    : 'Pas de compte ? <button class="link" onclick="openAuth(\'register\')">Créer un compte</button>';
+  const sw = document.getElementById('authSwitch');
+  if (mode === 'register') sw.innerHTML = 'Déjà un compte ? <button class="link" onclick="openAuth(\'login\')">Se connecter</button>';
+  else if (mode === 'reset') sw.innerHTML = '<button class="link" onclick="openAuth(\'login\')">← Retour à la connexion</button>';
+  else sw.innerHTML = 'Pas de compte ? <button class="link" onclick="openAuth(\'register\')">Créer un compte</button><br><button class="link" onclick="openAuth(\'reset\')">Mot de passe oublié ?</button>';
 }
+function _toggle(id, show) { const e = document.getElementById(id); if (e) e.classList.toggle('hidden', !show); }
 function closeAuth() { document.getElementById('authModal').classList.add('hidden'); }
 async function submitAuth() {
   const err = document.getElementById('a_err'); err.classList.add('hidden');
   const email = document.getElementById('a_email').value.trim();
   const pass = document.getElementById('a_pass').value;
+  let endpoint = 'login';
   const body = { email, password: pass };
-  if (authMode === 'register') { body.nom = document.getElementById('a_nom').value.trim(); body.tel = document.getElementById('a_tel').value.trim(); }
+  if (authMode === 'register') { endpoint = 'register'; body.nom = document.getElementById('a_nom').value.trim(); body.tel = document.getElementById('a_tel').value.trim(); }
+  else if (authMode === 'reset') { endpoint = 'reset'; body.tel = document.getElementById('a_tel').value.trim(); }
   try {
-    const res = await fetch('/api/' + (authMode === 'register' ? 'register' : 'login'), {
+    const res = await fetch('/api/' + endpoint, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
     });
     const data = await res.json();

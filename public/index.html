@@ -9,19 +9,9 @@
 <body>
 <div class="accountbar">
   <div class="wrap abrow">
-    <span id="hello" class="muted">Bienvenue chez Norria</span>
+    <span id="hello" class="muted">Norria Beauty Salon</span>
     <span class="navlinks">
-      <button class="link" onclick="showRealisations()">✨ Réalisations</button>
-      <button class="link" onclick="showBooking()">Réserver</button>
-    </span>
-    <span id="authBtns">
-      <button class="link" onclick="openAuth('login')">Se connecter</button>
-      <button class="link" onclick="openAuth('register')">Créer un compte</button>
-    </span>
-    <span id="userBtns" class="hidden">
-      <button class="link" onclick="showDashboard()">Mon espace</button>
-      <button class="link" onclick="showBooking()">Réserver</button>
-      <button class="link" onclick="logout()">Déconnexion</button>
+      <button class="link" onclick="showRealisations()">✨ Nos réalisations</button>
     </span>
   </div>
 </div>
@@ -69,6 +59,7 @@
   <!-- ETAPE 2 : date + creneau -->
   <section class="card hidden" id="step2">
     <h2 class="section">2. Choisissez la date et l'heure</h2>
+    <div id="step2info" class="chosen hidden"></div>
     <div class="daynav">
       <button class="navbtn" onclick="shiftDay(-1)">‹</button>
       <input type="date" id="date">
@@ -78,7 +69,7 @@
       <div class="daylabel" id="dayLabel"></div>
       <div class="agenda" id="agenda"></div>
       <p class="muted" id="noSlot" style="display:none;margin-top:10px">Fermé ou complet ce jour-là. Essayez une autre date.</p>
-      <p class="legend"><span class="lg lg-free"></span> libre &nbsp; <span class="lg lg-busy"></span> occupé / trop tard</p>
+      <p class="legend"><span class="lg lg-free"></span> libre &nbsp; <span class="lg lg-busy"></span> occupé &nbsp; <span class="lg lg-buffer"></span> trajet 1h</p>
     </div>
     <div class="actions">
       <button class="btn ghost" onclick="goStep(1)">Retour</button>
@@ -104,14 +95,6 @@
     <input id="photo" type="file" accept="image/*" onchange="previewPhoto()">
     <img id="photoPreview" class="preview hidden" alt="aperçu">
 
-    <div id="createAccountBox" class="acctbox">
-      <label class="checkline"><input type="checkbox" id="creerCompte" onchange="toggleAcct()"> Créer un compte pour retrouver mes RDV</label>
-      <div id="pwdWrap" class="hidden">
-        <label for="password">Mot de passe</label>
-        <input id="password" type="password" placeholder="Choisissez un mot de passe">
-      </div>
-    </div>
-
     <div class="notice" id="depositNotice"></div>
     <p class="err hidden" id="err"></p>
     <div class="actions">
@@ -132,12 +115,10 @@
   <div class="modalbox">
     <button class="close" onclick="closeAuth()">✕</button>
     <h2 class="section" id="authTitle">Connexion</h2>
-    <div id="regFields" class="hidden">
-      <label>Nom complet</label><input id="a_nom" placeholder="Votre nom">
-      <label>Téléphone</label><input id="a_tel" placeholder="06 …">
-    </div>
+    <div id="f_nom" class="hidden"><label>Nom complet</label><input id="a_nom" placeholder="Votre nom"></div>
     <label>E-mail</label><input id="a_email" type="email" placeholder="vous@exemple.com">
-    <label>Mot de passe</label><input id="a_pass" type="password" placeholder="••••••">
+    <div id="f_tel" class="hidden"><label>Téléphone (du compte)</label><input id="a_tel" placeholder="06 …"></div>
+    <label id="a_pass_label">Mot de passe</label><input id="a_pass" type="password" placeholder="••••••">
     <p class="err hidden" id="a_err"></p>
     <div class="actions"><button class="btn" id="authSubmit" onclick="submitAuth()">Valider</button></div>
     <p class="muted center" id="authSwitch"></p>
