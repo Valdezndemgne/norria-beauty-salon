@@ -199,6 +199,17 @@ app.post('/api/login', (req, res) => {
   res.json({ token: signToken(client.id), client: { id: client.id, nom: client.nom, tel: client.tel, email: client.email } });
 });
 
+// Mot de passe oublie : verification par e-mail + telephone du compte
+app.post('/api/reset', (req, res) => {
+  const { email, tel, password } = req.body || {};
+  if (!email || !tel || !password) return res.status(400).json({ error: 'E-mail, téléphone et nouveau mot de passe requis' });
+  const client = store.findClientByEmail(email);
+  const norm = (x) => (x || '').replace(/\D/g, '');
+  if (!client || norm(client.tel) !== norm(tel)) return res.status(400).json({ error: 'Aucun compte ne correspond à cet e-mail et ce téléphone.' });
+  store.setClientPassword(client.id, hashPassword(password));
+  res.json({ token: signToken(client.id), client: { id: client.id, nom: client.nom, tel: client.tel, email: client.email } });
+});
+
 app.get('/api/me', (req, res) => {
   const client = clientFromToken(bearer(req));
   if (!client) return res.status(401).json({ error: 'Non connecté' });

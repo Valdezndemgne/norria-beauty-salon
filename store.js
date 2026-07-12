@@ -157,6 +157,7 @@ module.exports = {
     save();
     return c;
   },
+  setClientPassword(id, hash) { const c = data.clients.find((x) => x.id === Number(id)); if (c) { c.pass_hash = hash; save(); } },
   allClients: () => [...data.clients].sort((a, b) => b.id - a.id),
 
   // ----- catalogue -----
