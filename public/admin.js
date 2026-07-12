@@ -10,11 +10,11 @@ async function login() {
   document.getElementById('dash').classList.remove('hidden');
   const rows = await res.json();
   renderResa(rows); renderDashboard(rows); renderCalendar();
-  loadClients(); loadCatalogue();
+  loadClients(); loadCatalogue(); loadReal();
 }
 
 function tab(t) {
-  ['dash', 'cal', 'resa', 'clients', 'catalogue'].forEach((x) => {
+  ['dash', 'cal', 'resa', 'clients', 'catalogue', 'real'].forEach((x) => {
     document.getElementById('v-' + x).classList.toggle('hidden', x !== t);
     document.querySelector(`.tab[data-t="${x}"]`).classList.toggle('on', x === t);
   });
@@ -100,13 +100,18 @@ function renderResa(rows) {
       <td><a href="tel:${r.cliente_tel}">${r.cliente_tel}</a></td>
       <td>${r.photo ? `<a href="${r.photo}" target="_blank"><img class="thumb" src="${r.photo}"></a>` : '—'}</td>
       <td><span class="badge b-${r.statut}">${r.statut.replace(/_/g, ' ')}</span></td>
-      <td>${r.statut !== 'annulee' ? `<button class="btn ghost mini" onclick="openEdit(${r.id})">Déplacer</button> <button class="btn ghost mini" onclick="annuler(${r.id})">Annuler</button>` : ''}</td>`;
+      <td>${r.statut !== 'annulee' ? `${r.statut === 'en_attente_acompte' ? `<button class="btn mini" style="background:linear-gradient(90deg,#3fae6b,#8fe0ad);color:#0c2a18" onclick="confirmer(${r.id})">✓ Confirmer l'acompte</button> ` : ''}<button class="btn ghost mini" onclick="openEdit(${r.id})">Déplacer</button> <button class="btn ghost mini" onclick="annuler(${r.id})">Annuler</button>` : ''}</td>`;
     tb.appendChild(tr);
   });
 }
 async function annuler(id) {
   if (!confirm('Annuler cette réservation ?')) return;
   await fetch(`/api/admin/reservations/${id}/annuler`, { method: 'POST', headers: H() });
+  reloadResa();
+}
+async function confirmer(id) {
+  if (!confirm('Confirmer que l\'acompte a bien été reçu (Wero) ? Le rendez-vous deviendra définitif.')) return;
+  await fetch(`/api/admin/reservations/${id}/confirmer`, { method: 'POST', headers: H() });
   reloadResa();
 }
 
@@ -176,4 +181,47 @@ async function delCat(id) {
   if (!confirm('Supprimer cette photo du catalogue ?')) return;
   await fetch('/api/admin/catalogue/' + id, { method: 'DELETE', headers: H() });
   loadCatalogue();
+}
+
+// ----- realisations -----
+async function loadReal() {
+  const rows = await (await fetch('/api/admin/realisations', { headers: H() })).json();
+  const g = document.getElementById('gadminReal'); g.innerHTML = '';
+  rows.forEach((c) => {
+    const media = c.type === 'video'
+      ? `<video src="${c.src}" muted playsinline preload="metadata" style="width:100%;height:120px;object-fit:cover"></video>`
+      : `<div class="im" style="background-image:url('${c.src}')"></div>`;
+    const el = document.createElement('div');
+    el.className = 'item';
+    el.innerHTML = `${media}<div class="cap"><span>${c.type === 'video' ? '🎬' : '📷'} ${c.titre || ''}</span><button class="link" onclick="delReal(${c.id})">suppr.</button></div>`;
+    g.appendChild(el);
+  });
+}
+async function addReal() {
+  const titre = document.getElementById('r_titre').value.trim();
+  const url = document.getElementById('r_url').value.trim();
+  const file = document.getElementById('r_file').files[0];
+  const err = document.getElementById('r_err'); err.classList.add('hidden');
+  const send = async (body) => {
+    const res = await fetch('/api/admin/realisations', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, H()), body: JSON.stringify(body) });
+    const data = await res.json();
+    if (!res.ok) { err.textContent = data.error || 'Erreur'; err.classList.remove('hidden'); return; }
+    document.getElementById('r_titre').value = ''; document.getElementById('r_url').value = ''; document.getElementById('r_file').value = '';
+    loadReal();
+  };
+  if (file) {
+    if (file.size > 35 * 1024 * 1024) { err.textContent = 'Fichier trop lourd (max 35 Mo).'; err.classList.remove('hidden'); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => send({ titre, media: e.target.result });
+    reader.readAsDataURL(file);
+  } else if (url) {
+    send({ titre, src: url });
+  } else {
+    err.textContent = 'Choisissez un fichier ou saisissez une URL.'; err.classList.remove('hidden');
+  }
+}
+async function delReal(id) {
+  if (!confirm('Supprimer cette réalisation ?')) return;
+  await fetch('/api/admin/realisations/' + id, { method: 'DELETE', headers: H() });
+  loadReal();
 }
